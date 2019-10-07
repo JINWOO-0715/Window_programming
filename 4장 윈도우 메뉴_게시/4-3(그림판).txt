@@ -1,0 +1,295 @@
+#include<Windows.h>
+#include<stdio.h>
+#include<stdlib.h>
+#include "resource.h"
+HINSTANCE g_hInst;
+LPCTSTR lpszClass = "WinDow Class Name";
+LPCTSTR lpszWindowName = "windows program 1-2";
+
+LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM IParam);
+struct PEN
+{
+	RECT rect;
+	int kind;
+	int R;
+	int G;
+	int B;
+	bool canDrawing = false;
+};
+
+int WINAPI WinMain(HINSTANCE hlnsatance, HINSTANCE hPrevlstance,
+	LPSTR lpzsCmdParam, int nCmdShow)
+
+{
+	HWND hWnd;
+	MSG Message;
+	WNDCLASSEX WndClass;
+	g_hInst = hlnsatance;
+
+	WndClass.cbSize = sizeof(WndClass);
+	WndClass.style = CS_HREDRAW | CS_VREDRAW;
+	WndClass.lpfnWndProc = (WNDPROC)WndProc;
+	WndClass.cbClsExtra = 0;
+	WndClass.cbWndExtra = 0;
+	WndClass.hInstance = hlnsatance;
+	WndClass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+	WndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
+	WndClass.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
+	WndClass.lpszMenuName = NULL;
+	WndClass.lpszClassName = lpszClass;
+	WndClass.lpszMenuName = MAKEINTRESOURCE(IDR_MENU1);
+	WndClass.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
+
+	RegisterClassEx(&WndClass);
+
+	hWnd = CreateWindow
+	(lpszClass, lpszWindowName, WS_SYSMENU | WS_THICKFRAME | WS_MAXIMIZEBOX | WS_MINIMIZEBOX | WS_HSCROLL | WS_VSCROLL, 100, 50, 1200, 800, NULL, (HMENU)NULL, hlnsatance, NULL);
+
+	ShowWindow(hWnd, nCmdShow);
+	UpdateWindow(hWnd);
+
+	while (GetMessage(&Message, 0, 0, 0))
+	{
+		TranslateMessage(&Message);
+		DispatchMessage(&Message);
+	}
+	return Message.wParam;
+}
+
+
+LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM IParam)
+{
+	PAINTSTRUCT ps;
+	HDC hDC;
+	HPEN hpen, oldpen;
+	HBRUSH hBrush, oldBrush;
+	static PEN pen[1000];
+	static PEN grid[100][100];
+	static PEN grid2[100][100];
+	static int choice = 1;
+	static int m;
+	static int	gridchoice = 1;
+	static bool drag = false;
+	static int R = 10, G = 100, B = 10;
+	static int r = 0, c = 0;
+	switch (iMessage)
+	{
+	case WM_CREATE:
+
+		break;
+	case WM_TIMER:
+		InvalidateRect(hWnd, NULL, TRUE);
+		break;
+	case WM_CHAR:
+		break;
+	case  WM_LBUTTONDOWN: //마우스 입력.
+		pen[r].rect.left = LOWORD(IParam);
+		pen[r].rect.top = HIWORD(IParam);
+		pen[r].rect.right = LOWORD(IParam);
+		pen[r].rect.bottom = HIWORD(IParam);
+		pen[r].R = R;
+		pen[r].G = G;
+		pen[r].B = B;
+
+
+		drag = TRUE;
+
+		InvalidateRect(hWnd, NULL, TRUE);
+
+		break;
+	case WM_LBUTTONUP:
+		drag = FALSE;
+		pen[r].rect.right = LOWORD(IParam);
+		pen[r].rect.bottom = HIWORD(IParam);
+		pen[r].kind = choice;
+
+		r++;
+		InvalidateRect(hWnd, NULL, TRUE);
+		break;
+	case WM_MOUSEMOVE:
+		if (drag)
+		{
+			switch (choice)
+			{
+
+			case 1:
+				hDC = GetDC(hWnd);
+				hBrush = CreateSolidBrush(RGB(pen[r].R, pen[r].G, pen[r].B));
+				oldBrush = (HBRUSH)SelectObject(hDC, hBrush);
+
+				SetROP2(hDC, R2_XORPEN);
+				Ellipse(hDC, pen[r].rect.left, pen[r].rect.top, pen[r].rect.right, pen[r].rect.bottom);
+				pen[r].rect.right = LOWORD(IParam);
+				pen[r].rect.bottom = HIWORD(IParam);
+				Ellipse(hDC, pen[r].rect.left, pen[r].rect.top, pen[r].rect.right, pen[r].rect.bottom);;
+				ReleaseDC(hWnd, hDC);
+				break;
+			case 2:
+				hDC = GetDC(hWnd);
+				hBrush = CreateSolidBrush(RGB(pen[r].G, pen[r].R, pen[r].B));
+				oldBrush = (HBRUSH)SelectObject(hDC, hBrush);
+
+				SetROP2(hDC, R2_XORPEN);
+				Rectangle(hDC, pen[r].rect.left, pen[r].rect.top, pen[r].rect.right, pen[r].rect.bottom);
+				pen[r].rect.right = LOWORD(IParam);
+				pen[r].rect.bottom = HIWORD(IParam);
+				Rectangle(hDC, pen[r].rect.left, pen[r].rect.top, pen[r].rect.right, pen[r].rect.bottom);
+				ReleaseDC(hWnd, hDC);
+				break;
+			case 3:
+				{
+					int a = LOWORD(IParam);
+					int b = HIWORD(IParam);
+					a = a / 5;
+					b = b / 5;
+					if (grid2[b][a].canDrawing == false)
+					{
+						grid2[b][a].canDrawing = true;
+					}
+
+					InvalidateRect(hWnd, NULL, TRUE);
+
+					break;
+
+				}
+					
+			}
+	
+
+		}
+
+		break;
+
+
+
+	case WM_COMMAND:
+		switch (LOWORD(wParam))
+		{
+		case ID_GRID_ON:
+			hDC = GetDC(hWnd);
+			gridchoice = 1;
+			InvalidateRect(hWnd, NULL, TRUE);
+			ReleaseDC(hWnd, hDC);
+			break;
+		case ID_GRID_OFF:
+			hDC = GetDC(hWnd);
+			gridchoice = 0;
+			InvalidateRect(hWnd, NULL, TRUE);
+			ReleaseDC(hWnd, hDC);
+			break;
+		case ID_COLOR_1:
+			R = 255;
+			G = 2;
+			B = 1;
+			break;
+		case ID_COLOR_2:
+			R = 1;
+			G = 255;
+			B = 1;
+			break;
+		case ID_COLOR_3:
+			R = 100;
+			G = 20;
+			B = 10;
+			break;
+		case ID_COLOR_4:
+			R = 255;
+			G = 20;
+			B = 200;
+			break;
+		case ID_COLOR_5:
+			R = 255;
+			G = 100;
+			B = 10;
+			break;
+		case ID_COLOR_6:
+			R = 10;
+			G = 100;
+			B = 255;
+			break;
+		case ID_SHAPE_CIRCLE:
+			choice = 1;
+			break;
+		case ID_SHAPE_RECTANGLE:
+			choice = 2;
+			break;
+		case ID_SHAPE_FREE:
+			choice = 3;
+			break;
+		}
+		break;
+	case WM_PAINT:
+		hDC = BeginPaint(hWnd, &ps);
+
+		if (gridchoice == 1)
+		{
+			for (int i = 0; i < 100; i++)
+			{
+				for (int j = 0; j < 100; j++)
+				{
+					Rectangle(hDC, j * 5, i * 5, (j + 1) * 5, (i + 1) * 5);
+					grid[i][j].rect.left = j * 5;
+					grid[i][j].rect.top = i * 5;
+					grid[i][j].rect.right = (j + 1) * 5;
+					grid[i][j].rect.bottom = (i + 1) * 5;
+					grid2[i][j].rect.left = j * 5;
+					grid2[i][j].rect.top = i * 5;
+					grid2[i][j].rect.right = (j + 1) * 5;
+					grid2[i][j].rect.bottom = (i + 1) * 5;
+				}
+			}
+
+		}
+
+
+		for (int i = 0; i < r; i++)
+		{
+			switch (pen[i].kind)
+			{
+			case 1:
+				hBrush = CreateSolidBrush(RGB(pen[i].R, pen[i].G, pen[i].B));
+				oldBrush = (HBRUSH)SelectObject(hDC, hBrush);
+				Ellipse(hDC, pen[i].rect.left, pen[i].rect.top, pen[i].rect.right, pen[i].rect.bottom);
+				DeleteObject(hBrush);
+
+				break;
+			case 2:
+				hBrush = CreateSolidBrush(RGB(pen[i].R, pen[i].G, pen[i].B));
+				oldBrush = (HBRUSH)SelectObject(hDC, hBrush);
+				Rectangle(hDC, pen[i].rect.left, pen[i].rect.top, pen[i].rect.right, pen[i].rect.bottom);
+				DeleteObject(hBrush);
+				break;
+			default:
+				break;
+			}
+
+		}
+
+
+		for (int i = 0; i < 100; i++)
+		{
+			for (int j = 0; j < 100; j++)
+			{
+				if (grid2[i][j].canDrawing == true)
+				{
+					hBrush = CreateSolidBrush(RGB(pen[i].R, pen[i].G, pen[i].B));
+					oldBrush = (HBRUSH)SelectObject(hDC, hBrush);
+					Rectangle(hDC, j * 5, i * 5, (j + 1) * 5, (i + 1) * 5);
+				}
+			}
+		}
+
+
+		EndPaint(hWnd, &ps);
+		break;
+
+	case WM_DESTROY:
+
+		PostQuitMessage(0);
+		return 0;
+
+
+	}
+
+	return(DefWindowProc(hWnd, iMessage, wParam, IParam));
+}

@@ -1,0 +1,207 @@
+#include<Windows.h>
+#include<stdio.h>
+#include<stdlib.h>
+#include<time.h>
+HINSTANCE g_hInst;
+LPCTSTR lpszClass = "WinDow Class Name";
+LPCTSTR lpszWindowName = "windows program 1-2";
+
+LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage,
+	WPARAM wParam, LPARAM IParam);
+
+int WINAPI WinMain(HINSTANCE hlnsatance, HINSTANCE hPrevlstance,
+	LPSTR lpzsCmdParam, int nCmdShow)
+
+{
+	HWND hWnd;
+	MSG Message;
+	WNDCLASSEX WndClass;
+	g_hInst = hlnsatance;
+
+	WndClass.cbSize = sizeof(WndClass);
+	WndClass.style = CS_HREDRAW | CS_VREDRAW;
+	WndClass.lpfnWndProc = (WNDPROC)WndProc;
+	WndClass.cbClsExtra = 0;
+	WndClass.cbWndExtra = 0;
+	WndClass.hInstance = hlnsatance;
+	WndClass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+	WndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
+	WndClass.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
+	WndClass.lpszMenuName = NULL;
+	WndClass.lpszClassName = lpszClass;
+	WndClass.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
+
+	RegisterClassEx(&WndClass);
+
+	hWnd = CreateWindow
+	(lpszClass, lpszWindowName, WS_SYSMENU | WS_THICKFRAME | WS_MAXIMIZEBOX | WS_MINIMIZEBOX | WS_HSCROLL | WS_VSCROLL, 100, 50, 800, 600, NULL, (HMENU)NULL, hlnsatance, NULL);
+
+	ShowWindow(hWnd, nCmdShow);
+	UpdateWindow(hWnd);
+
+	while (GetMessage(&Message, 0, 0, 0))
+	{
+		TranslateMessage(&Message);
+		DispatchMessage(&Message);
+	}
+	return Message.wParam;
+}
+
+
+LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM IParam)
+{
+	PAINTSTRUCT ps;
+	HDC hDC;
+	RECT rect;
+	HPEN hpen, oldpen;
+	HBRUSH hBrush, oldBrush;
+
+	static SIZE size;
+	static char str[200];
+	static int count = 0;;
+	static POINT point[3];
+	static POINT cursor;
+	static int shape;
+	static int x1, x2, y1, y2;
+	static int pensize = 0;
+	static int  r = 0, g = 0, b = 0;
+	static int change = 0;
+	static int realcolorR = 0, realcolorG = 0, realcolorB = 0;
+	static int plug = 0;
+	switch (iMessage)
+	{
+	case WM_CREATE:
+		CreateCaret(hWnd, NULL, 3, 15);
+		ShowCaret(hWnd);
+
+		break;
+	case WM_KEYDOWN:
+		if (wParam == VK_UP)
+		{
+			y1 -= 10;
+			y2 -= 10;
+		}
+		else if (wParam == VK_DOWN)
+		{
+			y1 += 10;
+			y2 += 10;
+		}
+		else if (wParam == VK_LEFT)
+		{
+			x1 -= 10;
+			x2 -= 10;
+		}
+
+		else if (wParam == VK_RIGHT)
+		{
+
+			x1 += 10;
+			x2 += 10;
+		}
+		InvalidateRect(hWnd, NULL, TRUE);
+		break;
+	case WM_CHAR: {
+		hDC = GetDC(hWnd);
+
+		if (wParam == VK_RETURN)
+		{
+			sscanf(str, "%d %d %d %d %d %d", &shape, &x1, &y1, &x2, &y2, &pensize);
+			r = rand() % 255;
+			g = rand() % 255;
+			b = rand() % 255;
+			for (int i = 0; i < strlen(str); i++)
+			{
+				str[i] = 0;
+			}
+			count = 0;
+		}
+		else if (wParam == VK_BACK)
+		{
+			if (strlen(str) - 1 >= 0)
+			{
+				str[strlen(str) - 1] = 0;
+				count = str[strlen(str)];
+			}
+
+		}
+		else if (wParam == '+')
+		{
+			pensize += 1;
+
+		}
+		else if (wParam == '-')
+		{
+			pensize -= 1;
+		}
+
+		else
+		{
+			str[count++] = wParam;
+			str[count] = '\0';
+		}
+		ReleaseDC(hWnd, hDC);
+		InvalidateRect(hWnd, NULL, TRUE);
+		break;
+	}
+
+	case WM_PAINT:
+		hDC = BeginPaint(hWnd, &ps);
+		Rectangle(hDC, 400, 500, 750, 530);
+		hpen = CreatePen(PS_SOLID, pensize, RGB(r, g, b));
+		oldpen = (HPEN)SelectObject(hDC, hpen);
+	
+		 if (shape == 1)
+		{
+
+			MoveToEx(hDC, x1, y1, NULL);
+
+			LineTo(hDC, x2, y2);
+			plug = 1;
+
+		}
+		else if (shape == 2)
+		{
+
+			Ellipse(hDC, x1, y1, x2, y2);
+			plug = 1;
+
+		}
+		else if (shape == 3)
+		{
+			point[0] = { x1,y2 };
+			point[1] = { x2,y2 };
+			point[2] = { (x1 + x2) / 2 ,(y1) };
+			Polygon(hDC, point, 3);
+			plug = 1;
+		}
+		else if (shape == 4)
+		{
+
+			;
+			Rectangle(hDC, x1, y1, x2, y2);;
+			plug = 1;
+
+		}
+		else if  (plug == 0)
+		 {
+			 TextOut(hDC, 200, 300, "not anythihg!!!", 17);
+		 }
+		SetCaretPos(0, 510);
+		GetTextExtentPoint(hDC, str, strlen(str), &size);
+		SetCaretPos(size.cx + 410, 510);
+		TextOut(hDC, 410, 510, str, strlen(str));
+		SelectObject(hDC, oldpen);
+		DeleteObject(oldpen);
+		EndPaint(hWnd, &ps);
+		break;
+
+	case WM_DESTROY:
+		HideCaret(hWnd);
+		DestroyCaret();
+		PostQuitMessage(0);
+		return 0;
+
+
+	}
+	return(DefWindowProc(hWnd, iMessage, wParam, IParam));
+}

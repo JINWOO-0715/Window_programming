@@ -1,0 +1,372 @@
+#include<Windows.h>
+#include<stdlib.h>
+#include<time.h>
+HINSTANCE g_hInst;
+LPCTSTR lpszClass = L"WinDow Class Name";
+LPCTSTR lpszWindowName = L"windows program 1-1";
+
+LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage,
+	WPARAM wParam, LPARAM IParam);
+void drawx(HDC hdc, int num);
+void dreatry(HDC hdc, int num);
+void drawsq(HDC hdc, int num);
+void draw(HDC hdc,int num);
+int g_num[4] = { 1,2,3,4 };
+int WINAPI WinMain(HINSTANCE hlnsatance, HINSTANCE hPrevlstance,
+	LPSTR lpzsCmdParam, int nCmdShow)
+
+{
+	HWND hWnd;
+	MSG Message;
+	WNDCLASSEX WndClass;
+	g_hInst = hlnsatance;
+
+	WndClass.cbSize = sizeof(WndClass);
+	WndClass.style = CS_HREDRAW | CS_VREDRAW;
+	WndClass.lpfnWndProc = (WNDPROC)WndProc;
+	WndClass.cbClsExtra = 0;
+	WndClass.cbWndExtra = 0;
+	WndClass.hInstance = hlnsatance;
+	WndClass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+	WndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
+	WndClass.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
+	WndClass.lpszMenuName = NULL;
+	WndClass.lpszClassName = lpszClass;
+	WndClass.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
+
+	RegisterClassEx(&WndClass);
+
+	hWnd = CreateWindow
+	(lpszClass, lpszWindowName, WS_SYSMENU | WS_THICKFRAME, 0, 0, 800, 600, NULL, (HMENU)NULL, hlnsatance, NULL);
+
+	ShowWindow(hWnd, nCmdShow);
+	UpdateWindow(hWnd);
+
+	while (GetMessage(&Message, 0, 0, 0))
+	{
+		TranslateMessage(&Message);
+		DispatchMessage(&Message);
+	}
+	return Message.wParam;
+}
+
+
+LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM IParam)
+{
+	PAINTSTRUCT ps;
+	HDC hdc;
+	RECT rect;
+	int x = 0, y = 0;
+
+	switch (iMessage) {
+	case WM_PAINT: {
+
+		hdc = BeginPaint(hWnd, &ps);
+	
+		EndPaint(hWnd, &ps);
+		break;
+	}
+	case WM_CHAR: {
+		hdc = GetDC(hWnd);
+		if (wParam == 'n' || wParam == 'N')
+		{
+			srand(unsigned int(time(NULL)));
+
+			int random_number = 0;
+			int temp = 0;
+
+			for (int i = 0; i < 4; i++)
+			{
+				random_number = rand() % 4;
+				temp = g_num[i];
+				g_num[i] = g_num[random_number];
+				g_num[random_number] = temp;
+			}
+		}
+		else if (wParam == 'q' || wParam == 'Q')
+		{
+			exit(0);
+		}
+		Rectangle(hdc, 10, 10, 350, 280);
+		Rectangle(hdc, 350, 280, 750, 550);
+		Rectangle(hdc, 10, 280, 350, 550);
+		Rectangle(hdc, 350, 10, 750, 280);
+
+		rect.top = 0;
+		rect.left = 0;
+		rect.right = 100;
+		rect.bottom = 100;
+		SetTextColor(hdc, RGB(255, 0, 0));
+		SetBkColor(hdc, RGB(255,100, 0));
+		drawx(hdc, g_num[0]);
+		SetTextColor(hdc, RGB(255, 105, 0));
+		SetBkColor(hdc, RGB(255,100, 100));
+		dreatry(hdc, g_num[1]);
+		SetTextColor(hdc, RGB(0, 85, 66));
+		SetBkColor(hdc, RGB(8, 60,10));
+		drawsq(hdc, g_num[2]);
+	SetTextColor(hdc, RGB(55, 0, 100));
+	SetBkColor(hdc, RGB(20,150,120));
+		draw(hdc,g_num[3]);
+		ReleaseDC(hWnd, hdc);
+
+	}
+
+				  break;
+
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		return 0;
+
+	}
+	return(DefWindowProc(hWnd, iMessage, wParam, IParam));
+}
+
+void drawx(HDC hdc, int num)
+{
+	switch (num)
+	{
+	case 1:
+		for (int i = 16; i < 160; i += 16) //x출력
+		{
+			TextOut(hdc, 64 + i, 64 + i, L"□", lstrlen(L"□"));
+			TextOut(hdc, 225 - i, i + 64, L"□", lstrlen(L"□"));
+
+		}
+		break;
+	case 2:
+		for (int i = 16; i < 160; i += 16) //x출력
+		{
+			TextOut(hdc, 440 + i, 64 + i, L"□", lstrlen(L"□"));
+			TextOut(hdc, 600 - i, i + 64, L"□", lstrlen(L"□"));
+
+		}
+		break;
+	case 3:
+		for (int i = 16; i < 160; i += 16) //x출력
+		{
+			TextOut(hdc, 110 + i, 300 + i, L"□", lstrlen(L"□"));
+			TextOut(hdc, 269 - i, i + 300, L"□", lstrlen(L"□"));
+
+		}
+		break;
+	case 4:
+		for (int i = 16; i < 160; i += 16) //x출력
+		{
+			TextOut(hdc, 420 + i, i + 300, L"□", lstrlen(L"□"));
+			TextOut(hdc, 580 - i, i + 300, L"□", lstrlen(L"□"));
+
+		}
+
+	}
+}
+void dreatry(HDC hdc, int num)
+{
+	switch (num)
+	{
+	case 1:
+		for (int i = 16; i < 160; i += 16) //세모출력
+		{
+			for (int j = 16; j < 160 - i; j += 16)
+			{
+				TextOut(hdc, 160 + i, 64 + j, L"□", lstrlen(L"□"));
+				TextOut(hdc, 178 - i, 64 + j, L"□", lstrlen(L"□"));
+			}
+
+		}
+		break;
+	case 2:
+		for (int i = 16; i < 160; i += 16) //세모출력
+		{
+			for (int j = 16; j < 160 - i; j += 16)
+			{
+				TextOut(hdc, 510 + i, 64 + j, L"□", lstrlen(L"□"));
+				TextOut(hdc, 528 - i, 64 + j, L"□", lstrlen(L"□"));
+			}
+
+		}
+		break;
+	case 3:
+		for (int i = 16; i < 160; i += 16) //세모출력
+		{
+			for (int j = 16; j < 160 - i; j += 16)
+			{
+				TextOut(hdc, 160 + i, 364 + j, L"□", lstrlen(L"□"));
+				TextOut(hdc, 176 - i, 364 + j, L"□", lstrlen(L"□"));
+			}
+
+		}
+		break;
+	case 4:
+		for (int i = 16; i < 160; i += 16) //세모출력
+		{
+			for (int j = 16; j < 160 - i; j += 16)
+			{
+				TextOut(hdc, 510 + i, 350 + j, L"□", lstrlen(L"□"));
+				TextOut(hdc, 528 - i, 350 + j, L"□", lstrlen(L"□"));
+			}
+
+		}
+		break;
+
+
+
+	}
+}
+void drawsq(HDC hdc, int num)
+{
+	switch (num)
+	{
+	case 1:
+		for (int i = 16; i < 120; i += 16) //x170 y 550
+		{
+			for (int j = 16; j < 120 - i; j += 16)
+			{
+				TextOut(hdc, 170 + i, 104 + j, L"□", lstrlen(L"□"));
+				TextOut(hdc, 170 + i, 120 - j, L"□", lstrlen(L"□"));
+				TextOut(hdc, 186 - i, 104 + j, L"□", lstrlen(L"□"));
+				TextOut(hdc, 186 - i, 120 - j, L"□", lstrlen(L"□"));
+
+			}
+
+		}
+		break;
+	case 2:
+		for (int i = 16; i < 120; i += 16) //x170 y 550
+		{
+			for (int j = 16; j < 120 - i; j += 16)
+			{
+				TextOut(hdc, 510 + i, 104 + j, L"□", lstrlen(L"□"));
+				TextOut(hdc, 510 + i, 120 - j, L"□", lstrlen(L"□"));
+				TextOut(hdc, 526 - i, 104 + j, L"□", lstrlen(L"□"));
+				TextOut(hdc, 526 - i, 120 - j, L"□", lstrlen(L"□"));
+
+			}
+
+		}
+		break;
+	case 3:
+		for (int i = 16; i < 120; i += 16) //x170 y 550
+		{
+			for (int j = 16; j < 120 - i; j += 16)
+			{
+				TextOut(hdc, 170 + i, 384 + j, L"□", lstrlen(L"□"));
+				TextOut(hdc, 170 + i, 400 - j, L"□", lstrlen(L"□"));
+				TextOut(hdc, 186 - i, 384 + j, L"□", lstrlen(L"□"));
+				TextOut(hdc, 186 - i, 400 - j, L"□", lstrlen(L"□"));
+
+			}
+
+		}
+		break;
+	case 4:
+		for (int i = 16; i < 120; i += 16) //x170 y 550
+		{
+			for (int j = 16; j < 120 - i; j += 16)
+			{
+				TextOut(hdc, 510 + i, 384 + j, L"□", lstrlen(L"□"));
+				TextOut(hdc, 510 + i, 400 - j, L"□", lstrlen(L"□"));
+				TextOut(hdc, 526 - i, 384 + j, L"□", lstrlen(L"□"));
+				TextOut(hdc, 526 - i, 400 - j, L"□", lstrlen(L"□"));
+
+			}
+
+		}
+
+	}
+}
+void draw(HDC hdc, int num)
+{
+	switch (num)
+	{
+	case 1:
+
+		for (int i = 16; i < 120; i += 16) //x170 y 550
+		{
+			for (int j = 16; j < 120 - i; j += 16)
+			{
+				TextOut(hdc, 70 + i, 104 + j, L"□", lstrlen(L"□"));
+				TextOut(hdc, 70 + i, 120 - j, L"□", lstrlen(L"□"));
+			}
+
+		}
+		for (int i = 16; i < 120; i += 16) //x170 y 550
+		{
+			for (int j = 16; j < 120 - i; j += 16)
+			{
+				TextOut(hdc, 280 - i, 104 + j, L"□", lstrlen(L"□"));
+				TextOut(hdc, 280 - i, 120 - j, L"□", lstrlen(L"□"));
+			}
+
+		}
+		break;
+	case 2:
+		for (int i = 16; i < 120; i += 16) //x170 y 550
+		{
+			for (int j = 16; j < 120 - i; j += 16)
+			{
+				TextOut(hdc, 400 + i, 104 + j, L"□", lstrlen(L"□"));
+				TextOut(hdc, 400 + i, 120 - j, L"□", lstrlen(L"□"));
+
+
+			}
+
+		}
+		for (int i = 16; i < 120; i += 16) //x170 y 550
+		{
+			for (int j = 16; j < 120 - i; j += 16)
+			{
+				TextOut(hdc, 610 - i, 104 + j, L"□", lstrlen(L"□"));
+				TextOut(hdc, 610 - i, 120 - j, L"□", lstrlen(L"□"));
+			}
+
+		}
+		break;
+	case 3:
+		for (int i = 16; i < 120; i += 16) //x170 y 550
+		{
+			for (int j = 16; j < 120 - i; j += 16)
+			{
+				TextOut(hdc, 70 + i, 384 + j, L"□", lstrlen(L"□"));
+				TextOut(hdc, 70 + i, 400 - j, L"□", lstrlen(L"□"));
+
+
+			}
+
+		}
+		for (int i = 16; i < 120; i += 16) //x170 y 550
+		{
+			for (int j = 16; j < 120 - i; j += 16)
+			{
+				TextOut(hdc,280 - i, 384 + j, L"□", lstrlen(L"□"));
+				TextOut(hdc, 280 - i, 400 - j, L"□", lstrlen(L"□"));
+			}
+
+		}
+		break;
+	case 4:
+		for (int i = 16; i < 120; i += 16) //x170 y 550
+		{
+			for (int j = 16; j < 120 - i; j += 16)
+			{
+				TextOut(hdc, 400 + i, 384 + j, L"□", lstrlen(L"□"));
+				TextOut(hdc, 400 + i, 400 - j, L"□", lstrlen(L"□"));
+
+
+			}
+
+		}
+		for (int i = 16; i < 120; i += 16) //x170 y 550
+		{
+			for (int j = 16; j < 120 - i; j += 16)
+			{
+				TextOut(hdc, 610 - i, 384 + j, L"□", lstrlen(L"□"));
+				TextOut(hdc, 610 - i, 400 - j, L"□", lstrlen(L"□"));
+			}
+
+		}
+		break;
+
+
+	}
+}

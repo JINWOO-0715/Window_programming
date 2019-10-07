@@ -1,0 +1,145 @@
+#include<Windows.h>
+#include<stdlib.h>
+#include<stdio.h>
+HINSTANCE g_hInst;
+LPCTSTR lpszClass = "WinDow Class Name";
+LPCTSTR lpszWindowName = "windows program 1-2";
+
+LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage,
+	WPARAM wParam, LPARAM IParam);
+int WINAPI WinMain(HINSTANCE hlnsatance, HINSTANCE hPrevlstance,
+	LPSTR lpzsCmdParam, int nCmdShow)
+
+{
+	HWND hWnd;
+	MSG Message;
+	WNDCLASSEX WndClass;
+	g_hInst = hlnsatance;
+
+	WndClass.cbSize = sizeof(WndClass);
+	WndClass.style = CS_HREDRAW | CS_VREDRAW;
+	WndClass.lpfnWndProc = (WNDPROC)WndProc;
+	WndClass.cbClsExtra = 0;
+	WndClass.cbWndExtra = 0;
+	WndClass.hInstance = hlnsatance;
+	WndClass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+	WndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
+	WndClass.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
+	WndClass.lpszMenuName = NULL;
+	WndClass.lpszClassName = lpszClass;
+	WndClass.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
+
+	RegisterClassEx(&WndClass);
+
+	hWnd = CreateWindow
+	(lpszClass, lpszWindowName, WS_SYSMENU | WS_THICKFRAME | WS_MAXIMIZEBOX | WS_MINIMIZEBOX | WS_HSCROLL | WS_VSCROLL, 100, 50, 800, 600, NULL, (HMENU)NULL, hlnsatance, NULL);
+
+	ShowWindow(hWnd, nCmdShow);
+	UpdateWindow(hWnd);
+
+	while (GetMessage(&Message, 0, 0, 0))
+	{
+		TranslateMessage(&Message);
+		DispatchMessage(&Message);
+	}
+	return Message.wParam;
+}
+
+
+LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM IParam)
+{
+	PAINTSTRUCT ps;
+	HDC hDC;
+	static char buffer[256];
+	static char point[20];
+	static int max = 0;
+	 char x_point[20];
+	 char y_point[20];
+	 char dan_point[20];
+	 int x_count = 0;
+	 int y_count = 0;
+	int dan_count = 0;
+	static int x = 0, y = 0, dan = 0;
+
+	switch (iMessage) {
+	case WM_PAINT: 
+
+		hDC = BeginPaint(hWnd, &ps);
+		TextOut(hDC, 0, 0, point, max);
+		for (int idx = 1; idx < 10; idx++)
+		{
+			sprintf_s(buffer, "%d X %d = %d", dan, idx, dan * idx);//버퍼값에 저장
+			TextOut(hDC, x, y +idx*20, buffer, strlen(buffer)); //좌표에 출력
+		}
+		EndPaint(hWnd, &ps);
+		break;
+	
+	case WM_CHAR:
+		hDC = GetDC(hWnd);
+		if (wParam == VK_BACK)
+		{
+			if (max >0)
+			{
+				max--;
+			}
+				
+		}
+		else if (wParam == VK_RETURN)
+		{
+			int a = 0;
+			for (int i = 0; i < max; i++)
+			{
+				if (point[i] == ' ')
+				{
+					x_count = i;
+					for (int j = 0; j < x_count; j++)
+					{
+						x_point[j] = point[j];
+
+					}
+					x = atoi(x_point);
+					break;
+				}
+				
+			}
+			for (int i = x_count + 1; i < max; i++)
+			{
+				int y_start = x_count + 1;
+				if (point[i] == ' ')
+				{
+					y_count = i;
+					for (int j = y_start; j < y_count; j++)
+					{
+						y_point[j - y_start] = point[j];
+					}
+					y = atoi(y_point);
+					break;
+				}
+			}
+			int index = y_count + 1;
+			while (point[index] != '\0')
+			{
+				dan_point[dan_count] = point[index];
+				dan_count++;
+				index++;
+			}
+			dan = atoi(dan_point);
+			if (dan == 0)
+				exit(0);
+			max = 0;
+		}
+		else {
+			point[max] = wParam;
+			max++;
+		}
+		InvalidateRect(hWnd, NULL, TRUE);
+		ReleaseDC(hWnd, hDC);
+
+		break;
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		return 0;
+
+	}
+	return(DefWindowProc(hWnd, iMessage, wParam, IParam));
+}

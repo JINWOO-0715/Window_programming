@@ -1,0 +1,429 @@
+#include<Windows.h>
+#include<stdio.h>
+#include<stdlib.h>
+#include "resource.h"
+HINSTANCE g_hInst;
+LPCTSTR lpszClass = "WinDow Class Name";
+LPCTSTR lpszWindowName = "windows program 1-2";
+LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM IParam);
+
+
+typedef struct _point
+{
+	int x1;
+	int x2;
+	int y1;
+	int y2;
+	bool ch = false;
+	int bmpleft;
+	int bmptop;
+	int bmpringt;
+	int bmpbottom;
+}point;
+bool checkfirst = true;
+bool IsPointInRect(point target, int x, int y);
+int WINAPI WinMain(HINSTANCE hlnsatance, HINSTANCE hPrevlstance,
+	LPSTR lpzsCmdParam, int nCmdShow)
+
+{
+	HWND hWnd;
+	MSG Message;
+	WNDCLASSEX WndClass;
+	g_hInst = hlnsatance;
+
+	WndClass.cbSize = sizeof(WndClass);
+	WndClass.style = CS_HREDRAW | CS_VREDRAW;
+	WndClass.lpfnWndProc = (WNDPROC)WndProc;
+	WndClass.cbClsExtra = 0;
+	WndClass.cbWndExtra = 0;
+	WndClass.hInstance = hlnsatance;
+	WndClass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+	WndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
+	WndClass.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
+	WndClass.lpszMenuName = NULL;
+	WndClass.lpszClassName = lpszClass;
+
+	WndClass.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
+
+	RegisterClassEx(&WndClass);
+
+	hWnd = CreateWindow
+	(lpszClass, lpszWindowName, WS_SYSMENU | WS_THICKFRAME | WS_MAXIMIZEBOX | WS_MINIMIZEBOX | WS_HSCROLL | WS_VSCROLL, 100, 50, 1300, 800, NULL, (HMENU)NULL, hlnsatance, NULL);
+
+	ShowWindow(hWnd, nCmdShow);
+	UpdateWindow(hWnd);
+
+	while (GetMessage(&Message, 0, 0, 0))
+	{
+		TranslateMessage(&Message);
+		DispatchMessage(&Message);
+	}
+	return Message.wParam;
+}
+
+
+LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM IParam)
+{
+	PAINTSTRUCT ps;
+	HDC hDC,memdc;
+	HPEN hpen, oldpen;
+	HBRUSH hBrush, oldBrush;
+	static HBITMAP hBitmap;
+	static point photo[3][3];
+	static point by1[1][1];
+	static point by2[2][2];
+	static point by3[3][3];
+	static point by4[4][4];
+	static point by5[5][5];
+	static point userpaint;
+	static int lenthx =0,lenthy=0;
+	
+	static int clmx = 0, clmy = 0;
+	static int mx=0, my=0;
+	static int mode = 0;
+	switch (iMessage)
+	{
+	case WM_CREATE:
+		hBitmap = LoadBitmap(g_hInst, MAKEINTRESOURCE (IDB_BITMAP1));
+		
+		hDC = GetDC(hWnd);
+		for (int i = 0; i < 3; i++)
+		{
+			for (int j = 0; j < 3; j++)
+			{
+				photo[i][j].x1 = i * (600/3);
+				photo[i][j].y1 = j * 600;
+				photo[i][j].x2 = (i + 1)*(600 / 3);
+				photo[i][j].y2 = (j + 1) * 600;
+				photo[i][j].bmpleft = i * (600 / 3);
+				photo[i][j].bmptop = j * 600;
+				photo[i][j].bmpringt = (i + 1)*(600 / 3);
+				photo[i][j].bmpbottom = (j + 1) * 600;
+
+
+			}
+		}
+		for (int i = 0; i < 1; i++)
+		{
+			for (int j = 0; j < 1; j++)
+			{
+				Rectangle(hDC, 600+i*600, j * 600, 600+(i+1)*600, (j+1) * 600);
+					by1[i][j].x1 = 600 + i * 600;
+					by1[i][j].x2 = 600 + (i + 1) * 600;
+					by1[i][j].y1 = j * 600;
+					by1[i][j].y2 = (j + 1) * 600;
+					
+			}
+
+		}
+		for (int i = 0; i < 2; i++)
+		{
+			for (int j = 0; j < 2; j++)
+			{
+				Rectangle(hDC, 600 + i * (600 / 2), j*(600 / 2), 600 + (i + 1)*(600 / 2), (j + 1)*(600 / 2));
+				by2[i][j].x1 = 600 + i * (600 / 2);
+				by2[i][j].x2 = 600 + (i + 1)*(600 / 2);
+				by2[i][j].y1 = j * (600 / 2);
+				by2[i][j].y2 = (j + 1)*(600 / 2);
+			}
+
+		}
+		for (int i = 0; i < 3; i++)
+		{
+			for (int j = 0; j < 3; j++)
+			{
+				Rectangle(hDC, 600 + i * (600 / 3), j*(600 / 3), 600 + (i + 1)*(600 / 3), (j + 1)*(600 / 3));
+				by3[i][j].x1 = 600 + i * (600 / 3);
+				by3[i][j].x2 = 600 + (i + 1)*(600 / 3);
+				by3[i][j].y1 = j * (600 / 3);
+				by3[i][j].y2 = (j + 1)*(600 / 3);
+			}
+
+		}
+		for (int i = 0; i < 4; i++)
+		{
+			for (int j = 0; j < 4; j++)
+			{
+				Rectangle(hDC, 600 + i * (600 / 4), j*(600 / 4), 600 + (i + 1)*(600 / 4), (j + 1)*(600 / 4));
+				by4[i][j].x1 = 600 + i * (600 / 4);
+				by4[i][j].x2 = 600 + (i + 1)*(600 / 4);
+				by4[i][j].y1 = j * (600 / 4);
+				by4[i][j].y2 = (j + 1)*(600 / 4);
+			}
+
+		}
+		for (int i = 0; i < 5; i++)
+		{
+			for (int j = 0; j < 5; j++)
+			{
+				Rectangle(hDC, 600 + i * (600 / 5), j*(600 / 5), 600 + (i + 1)*(600 / 5), (j + 1)*(600 / 5));
+				by5[i][j].x1 = 600 + i * (600 / 5);
+				by5[i][j].x2 = 600 + (i + 1)*(600 / 5);
+				by5[i][j].y1 = j * (600 / 5);
+				by5[i][j].y2 = (j + 1)*(600 / 5);
+
+			}
+
+		}
+		ReleaseDC(hWnd, hDC);
+
+		break;
+
+	case WM_CHAR:
+		hDC = GetDC(hWnd);
+		if (wParam == '1')
+		{
+			mode = 1;
+			lenthx = 600;
+			lenthy = 600;
+			InvalidateRect(hWnd, NULL, TRUE);
+		}
+		if (wParam == '2')
+		{
+			mode = 2;
+			lenthx = 300;
+			lenthy = 300;
+			InvalidateRect(hWnd, NULL, TRUE);
+
+		}
+		if (wParam == '3')
+		{
+			mode = 3;
+			lenthx = 200;
+			lenthy = 200;
+			InvalidateRect(hWnd, NULL, TRUE);
+
+		}
+		if (wParam == '4')
+		{
+			mode = 4;
+			lenthx = 150;
+			lenthy = 150;
+			InvalidateRect(hWnd, NULL, TRUE);
+
+		}
+
+		if (wParam == '5')
+		{
+			mode = 5;
+			lenthx = 120;
+			lenthx = 120;
+			InvalidateRect(hWnd, NULL, TRUE);
+
+		}
+		ReleaseDC(hWnd,hDC); 
+
+		break;
+
+
+	case  WM_LBUTTONDOWN: //마우스 입력
+		mx = LOWORD(IParam);
+		my = HIWORD(IParam);
+	
+		for (int i = 0; i < 3; i++)
+		{
+			for (int j = 0; j < 3; j++)
+			{
+				if (IsPointInRect(photo[i][j], mx, my) == true)
+				{
+					photo[i][j].ch = true;
+					userpaint.bmpleft = photo[i][j].bmpleft;
+					userpaint.bmptop = photo[i][j].bmptop;
+		      	}
+			}
+		}
+	
+		break;
+	case  WM_LBUTTONUP: 
+	{ //마우스 입력
+
+		InvalidateRect(hWnd, NULL, TRUE);
+		switch (mode)
+		{
+		case 1:
+
+			for (int i = 0; i < 1; i++)
+			{
+				for (int j = 0; j < 1; j++)
+				{
+					
+				}
+
+			}
+			break;
+		case 2:
+			for (int i = 0; i < 4; i++)
+			{
+				for (int j = 0; j < 4; j++)
+				{
+					if (photo[i][j].ch == true)
+					{
+						clmx = (mx - 600) / 300;
+						clmy = my / 300;
+						userpaint.x1 = by2[clmx][clmy].x1;
+						userpaint.y1 = by2[clmx][clmy].y1;
+					
+					
+					}
+				}
+
+			}
+			break;
+		case 3:
+			for (int i = 0; i < 3; i++)
+			{
+				for (int j = 0; j < 3; j++)
+				{
+			
+				}
+
+			}
+			break;
+		case 4:
+			for (int i = 0; i < 4; i++)
+			{
+				for (int j = 0; j < 4; j++)
+				{
+
+				}
+
+			}
+			break;
+		case 5:
+			for (int i = 0; i < 5; i++)
+			{
+				for (int j = 0; j < 5; j++)
+				{
+	
+				}
+
+			}
+			break;
+		default:
+			break;
+		}
+		InvalidateRect(hWnd, NULL, TRUE);
+		checkfirst = false;
+		break;
+	}
+	case WM_MOUSEMOVE:
+		mx = LOWORD(IParam);
+		my = HIWORD(IParam);
+
+		break;
+
+	case WM_COMMAND:
+		break;
+	case WM_PAINT:
+		hDC = BeginPaint(hWnd, &ps);
+		memdc = CreateCompatibleDC(hDC);
+		SelectObject(memdc, hBitmap);
+		for (int i = 0; i < 3; i++)
+		{
+			for (int j = 0; j < 3; j++)
+			{
+				BitBlt(hDC, photo[i][j].x1, photo[i][j].y1, photo[i][j].x2, photo[i][j].y2, memdc, photo[i][j].x1, photo[i][j].y1,SRCCOPY);
+			}
+
+		}
+		
+		switch (mode)
+		{
+		case 1:
+			
+			for (int i = 0; i < 1; i++)
+			{
+				for (int j = 0; j < 1; j++)
+				{
+					Rectangle(hDC, by1[i][j].x1, by1[i][j].y1, by1[i][j].x2, by1[i][j].y2);
+				}
+
+			}
+			break;
+		case 2:
+			for (int i = 0; i < 2; i++)
+			{
+				for (int j = 0; j < 2; j++)
+				{
+					Rectangle(hDC, by2[i][j].x1, by2[i][j].y1, by2[i][j].x2, by2[i][j].y2);
+				}
+
+			}
+			break;
+		case 3:
+			for (int i = 0; i < 3; i++)
+			{
+				for (int j = 0; j < 3; j++)
+				{
+					Rectangle(hDC, by3[i][j].x1, by3[i][j].y1, by3[i][j].x2, by3[i][j].y2);
+				}
+
+			}
+			break;
+		case 4:
+			for (int i = 0; i < 4; i++)
+			{
+				for (int j = 0; j < 4; j++)
+				{
+					Rectangle(hDC, by4[i][j].x1, by4[i][j].y1, by4[i][j].x2, by4[i][j].y2);
+				}
+
+			}
+			break;
+		case 5:
+			for (int i = 0; i < 5; i++)
+			{
+				for (int j = 0; j < 5; j++)
+				{
+					Rectangle(hDC, by5[i][j].x1, by5[i][j].y1, by5[i][j].x2, by5[i][j].y2);
+				}
+
+			}
+			break;
+		default:
+			break;
+		}
+		
+		MoveToEx(hDC, 400, 0, NULL);
+		LineTo(hDC, 400, 600);
+		MoveToEx(hDC, 200, 0, NULL);
+		LineTo(hDC, 200, 600);
+		MoveToEx(hDC, 600, 0, NULL);
+		LineTo(hDC, 600, 600);
+
+		MoveToEx(hDC, 0, 400, NULL);
+		LineTo(hDC, 600, 400);
+		MoveToEx(hDC, 0, 200, NULL);
+		LineTo(hDC, 600, 200);
+		MoveToEx(hDC, 0, 600, NULL);
+		LineTo(hDC, 600, 600);
+	
+		if (checkfirst == false)
+		{
+			StretchBlt(hDC, userpaint.x1, userpaint.y1, lenthx, lenthy, memdc, userpaint.bmpleft, userpaint.bmptop, 300, 300, SRCCOPY);
+		}
+		DeleteDC(memdc);
+
+		EndPaint(hWnd, &ps);
+		break;
+
+	case WM_DESTROY:
+
+		PostQuitMessage(0);
+		return 0;
+
+
+	}
+
+	return(DefWindowProc(hWnd, iMessage, wParam, IParam));
+}
+
+bool IsPointInRect(point target, int x, int y)
+{
+	if ((target.x1 <= x && x <= target.x2) &&	(target.y1 <= y && y <= target.y2))
+	{
+		return true;
+	}
+	else
+		return false;
+}

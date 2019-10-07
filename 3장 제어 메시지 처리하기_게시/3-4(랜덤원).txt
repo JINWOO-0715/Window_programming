@@ -1,0 +1,195 @@
+#include<Windows.h>
+#include<stdio.h>
+#include<stdlib.h>
+#include <math.h>
+#include<time.h>
+HINSTANCE g_hInst;
+LPCTSTR lpszClass = "WinDow Class Name";
+LPCTSTR lpszWindowName = "windows program 1-2";
+
+LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM IParam);
+#define BSIZE 40
+float LengthPts(int x1, int y1, int x2, int y2);
+BOOL InCircle(int x, int y, int mx, int my);
+struct  circle
+{
+	int x1;
+	int y1;
+	int x2;
+	int y2;
+	int radi;
+	int r;
+	int g;
+	int b;
+	int linex1;
+	int iinex2;
+	int liney1;
+	int liney2;
+	bool check = false;
+};
+int WINAPI WinMain(HINSTANCE hlnsatance, HINSTANCE hPrevlstance,
+	LPSTR lpzsCmdParam, int nCmdShow)
+
+{
+	HWND hWnd;
+	MSG Message;
+	WNDCLASSEX WndClass;
+	g_hInst = hlnsatance;
+
+	WndClass.cbSize = sizeof(WndClass);
+	WndClass.style = CS_HREDRAW | CS_VREDRAW;
+	WndClass.lpfnWndProc = (WNDPROC)WndProc;
+	WndClass.cbClsExtra = 0;
+	WndClass.cbWndExtra = 0;
+	WndClass.hInstance = hlnsatance;
+	WndClass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+	WndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
+	WndClass.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
+	WndClass.lpszMenuName = NULL;
+	WndClass.lpszClassName = lpszClass;
+	WndClass.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
+
+	RegisterClassEx(&WndClass);
+
+	hWnd = CreateWindow
+	(lpszClass, lpszWindowName, WS_SYSMENU | WS_THICKFRAME | WS_MAXIMIZEBOX | WS_MINIMIZEBOX | WS_HSCROLL | WS_VSCROLL, 100, 50, 1200, 800, NULL, (HMENU)NULL, hlnsatance, NULL);
+
+	ShowWindow(hWnd, nCmdShow);
+	UpdateWindow(hWnd);
+
+	while (GetMessage(&Message, 0, 0, 0))
+	{
+		TranslateMessage(&Message);
+		DispatchMessage(&Message);
+	}
+	return Message.wParam;
+}
+
+
+LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM IParam)
+{
+	PAINTSTRUCT ps;
+	HDC hDC;
+	HPEN hpen, oldpen;
+	HBRUSH hBrush, oldBrush;
+	static int x, y;
+	static BOOL Selection;
+	static int mx, my;
+	static circle c[20];
+	static int a=0;
+	static int siga = 0;
+	switch (iMessage)
+	{
+	case WM_CREATE:
+		x = 40; y = 40;
+		Selection = FALSE;
+		SetTimer(hWnd, 1, 5000, NULL);
+		SetTimer(hWnd, 2, 20, NULL);
+		break;
+	case WM_TIMER:
+		switch (wParam)
+		{
+		case 1:
+			srand((unsigned int)time(NULL));
+			c[a].x1 = rand() % 800;
+			c[a].y1 = rand() % 800;
+			c[a].radi = rand() % 30 + 30;
+			c[a].x2 = c[a].x1 + c[a].radi;
+			c[a].y2 = c[a].y1 + c[a].radi;
+			c[a].r = rand() % 255;
+			c[a].b = rand() % 255;
+			c[a].g = rand() % 255;
+			c[a].linex1 =c[a]. x1;
+			c[a].liney1 = c[a].y1 +c[a].radi;
+			c[a].iinex2 = c[a].x2;
+			c[a].liney2 = c[a].y2 - c[a].radi;
+				
+			c[a].check = true;
+			a++;
+			break;
+		case 2:
+			for (int i = 0; i < 20; i++)
+			{
+				if (c[i].check == true)
+				{
+					c[i].linex1 = c[i].x1 + c[i].radi - cos(siga)*c[i].radi/2;
+					c[i].iinex2 = c[i].x2 - c[i].radi + cos(siga)*c[i].radi/2;
+					c[i].liney1 = c[i].y1 + c[i].radi - sin(siga)*c[i].radi/2;
+					c[i].liney2= c[i].y2 - c[i].radi + sin(siga)*c[i].radi/2;
+				}
+			}
+			siga++;
+			break;
+		}
+		InvalidateRect(hWnd, NULL, TRUE);
+		break;
+	case WM_CHAR:
+		break;
+	case WM_LBUTTONDOWN: // 왼쪽 버튼 누르면
+		mx = LOWORD(IParam);
+		my = HIWORD(IParam);
+		if (InCircle(x, y, mx, my)) // 원의 중심점, 마우스 좌표 비교
+			Selection = TRUE; // 원 안에 있으면 ‘참’
+		InvalidateRect(hWnd, NULL, TRUE);
+		break;
+	case WM_LBUTTONUP:
+
+		Selection = FALSE;
+		InvalidateRect(hWnd, NULL, TRUE);
+		break;
+	case WM_MOUSEMOVE:
+		mx = LOWORD(IParam);
+		my = HIWORD(IParam);
+		if (Selection) // 원이 선택된 상태로 움직이면
+		{
+			x = mx;
+			y = my;
+			InvalidateRect(hWnd, NULL, TRUE); // 원과 사각형 그리기
+		}
+		break;
+	case WM_PAINT:
+
+		hDC = BeginPaint(hWnd, &ps);
+		Ellipse(hDC, x - BSIZE, y - BSIZE, x + BSIZE, y + BSIZE);
+
+		for (int i = 0; i < 20; i++)
+		{
+			if (c[i].check == true)
+			{
+			
+					hBrush = CreateSolidBrush(RGB(c[i].r,c[i].g,c[i].b)); 
+					oldBrush = (HBRUSH)SelectObject(hDC, hBrush);
+				Ellipse(hDC,c[i].x1, c[i].y1, c[i].x2, c[i].y2);
+				MoveToEx(hDC, c[i].linex1, c[i].liney1, NULL);
+				LineTo(hDC, c[i].iinex2, c[i].liney2);
+			
+				
+				DeleteObject(hBrush);
+			}
+		}
+
+		EndPaint(hWnd, &ps);
+		break;
+
+	case WM_DESTROY:
+
+		PostQuitMessage(0);
+		return 0;
+
+
+	}
+
+	return(DefWindowProc(hWnd, iMessage, wParam, IParam));
+}
+
+BOOL InCircle(int x, int y, int mx, int my)
+{
+	if (LengthPts(x, y, mx, my) < BSIZE)
+		return TRUE;
+	else
+		return FALSE;
+}
+float LengthPts(int x1, int y1, int x2, int y2)
+{
+	return (sqrt((x2 - x1)*(x2 - x1) + (y2 - y1)*(y2 - y1)));
+}
